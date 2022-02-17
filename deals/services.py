@@ -1,4 +1,30 @@
-from .models import TopCustomer
+import csv
+from io import TextIOWrapper
+
+from .models import TopCustomer, Deal
+
+
+def get_data(file):
+    csvfile = TextIOWrapper(file, encoding='utf8')
+    reader = csv.DictReader(csvfile)
+    deal_obj_list = []
+    customers = {}
+    for row in reader:
+        deal_obj_list.append(Deal(**row))
+
+        if row['customer'] not in customers:
+            customers[row['customer']] = {
+                'spent_money': float(row['total']),
+                'gems': {row['item']},
+                'select': set()
+            }
+        else:
+            customers[row['customer']]['spent_money'] += float(row['total'])
+            customers[row['customer']]['gems'].add(row['item'])
+
+    tc_obj_list = top_customers(customers)
+
+    return deal_obj_list, tc_obj_list
 
 
 def top_customers(customers):
